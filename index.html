@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mad Chicken – Print Portal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    }
+
+    .main-logo {
+      width: 140px;
+      margin-bottom: 10px;
+    }
+
+    .sub {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .powered-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .powered-text {
+      font-size: 11px;
+      color: #aaa;
+    }
+
+    .onestop-logo {
+      height: 24px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin-bottom: 24px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #e63946;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #e63946;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: #c1121f; }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 11px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <img src="madchicken-logo.png" alt="Mad Chicken" class="main-logo" />
+    <div class="sub">Mad Chicken Print Ordering Portal</div>
+
+    <div class="powered-row">
+  <div>
+    <span class="powered-text">Powered by</span><br>
+    <img src="onestop-logo.png" alt="Onestop Design & Print" class="onestop-logo" />
+  </div>
+</div>>
+
+    <hr class="divider">
+
+    <input type="email" placeholder="Email address" />
+    <input type="password" placeholder="Password" />
+    <button>Sign In</button>
+
+    <div class="footer">For access issues, contact your print shop administrator</div>
+  </div>
+
+</body>
+</html>

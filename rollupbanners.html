@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mad Chicken – Roll-Up Banners</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    nav { background: #1a1a2e; padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; }
+    nav img { height: 50px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-right span { color: #aaa; font-size: 14px; }
+    .cart-btn { background: white; color: #1a1a2e; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .cart-count { background: #e63946; color: white; border-radius: 50%; padding: 2px 7px; font-size: 12px; margin-left: 6px; }
+    .logout { background: #e63946; color: white; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .breadcrumb { padding: 20px 30px 0; font-size: 13px; }
+    .breadcrumb a { color: #e63946; text-decoration: none; }
+    .page-header { padding: 10px 30px 10px; }
+    .page-header h1 { font-size: 22px; color: #1a1a2e; }
+    .coming-soon { text-align: center; padding: 80px 30px; }
+    .coming-soon .icon { font-size: 64px; margin-bottom: 20px; }
+    .coming-soon h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 10px; }
+    .coming-soon p { color: #888; font-size: 15px; margin-bottom: 24px; }
+    .coming-soon a { background: #e63946; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <img src="madchicken-logo.png" alt="Mad Chicken" />
+    <div class="nav-right">
+      <span>Welcome, Manager</span>
+      <button class="cart-btn" onclick="window.location='cart.html'">🛒 Cart <span class="cart-count" id="cartCount">0</span></button>
+      <button class="logout" onclick="window.location='index.html'">Log Out</button>
+    </div>
+  </nav>
+  <div class="breadcrumb"><a href="dashboard.html">← Back to All Products</a></div>
+  <div class="page-header"><h1>Roll-Up Banners</h1></div>
+  <div class="coming-soon">
+    <div class="icon">🪧</div>
+    <h2>Products Coming Soon</h2>
+    <p>Roll-up banner products are being added. Contact Onestop Design & Print to place a custom order.</p>
+    <a href="dashboard.html">Browse Other Products</a>
+  </div>
+  <script>
+    function getCart() { return JSON.parse(localStorage.getItem('mc_cart') || '[]'); }
+    document.getElementById('cartCount').textContent = getCart().length;
+  </script>
+</body>
+</html>

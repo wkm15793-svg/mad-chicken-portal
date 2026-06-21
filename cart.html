@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mad Chicken – Cart</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    nav { background: #1a1a2e; padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; }
+    nav img { height: 50px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-right span { color: #aaa; font-size: 14px; }
+    .cart-btn { background: white; color: #1a1a2e; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .cart-count { background: #e63946; color: white; border-radius: 50%; padding: 2px 7px; font-size: 12px; margin-left: 6px; }
+    .logout { background: #e63946; color: white; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .breadcrumb { padding: 20px 30px 0; font-size: 13px; color: #888; }
+    .breadcrumb a { color: #e63946; text-decoration: none; }
+    .page-header { padding: 16px 30px 6px; }
+    .page-header h1 { font-size: 22px; color: #1a1a2e; }
+
+    .cart-container { padding: 20px 30px 60px; max-width: 860px; }
+
+    /* Empty state */
+    .empty-cart { background: white; border-radius: 12px; padding: 60px 30px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .empty-cart p { font-size: 16px; color: #888; margin-bottom: 20px; }
+    .empty-cart a { background: #e63946; color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; }
+
+    /* Cart items */
+    .cart-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 24px; }
+    .cart-table th { background: #1a1a2e; color: white; padding: 12px 18px; text-align: left; font-size: 13px; }
+    .cart-table td { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; font-size: 14px; vertical-align: middle; }
+    .cart-table tr:last-child td { border-bottom: none; }
+    .product-name { font-weight: bold; color: #1a1a2e; }
+    .product-size { font-size: 12px; color: #999; margin-top: 3px; }
+    .location-badge { background: #e8f4fd; color: #1a73e8; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+    .qty-text { font-size: 13px; color: #555; max-width: 180px; }
+    .notes-text { font-size: 12px; color: #888; font-style: italic; }
+    .btn-remove { background: none; border: none; color: #e63946; font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .btn-remove:hover { background: #fff0f0; }
+
+    /* Order summary box */
+    .order-summary { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .order-summary h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 16px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 10px; }
+    .summary-row.total { font-weight: bold; color: #1a1a2e; font-size: 16px; border-top: 1px solid #f0f0f0; padding-top: 12px; margin-top: 4px; }
+    .order-notes { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; height: 80px; resize: none; margin: 14px 0; }
+    .btn-submit { width: 100%; padding: 14px; background: #e63946; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 4px; }
+    .btn-submit:hover { background: #c1121f; }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-clear { width: 100%; padding: 10px; background: #f0f0f0; color: #555; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 10px; }
+    .btn-clear:hover { background: #e0e0e0; }
+
+    /* Success screen */
+    #successScreen { display: none; }
+    .success-card { background: white; border-radius: 12px; padding: 60px 30px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); max-width: 500px; margin: 40px auto; }
+    .success-icon { font-size: 64px; margin-bottom: 16px; }
+    .success-card h2 { font-size: 24px; color: #1a1a2e; margin-bottom: 10px; }
+    .success-card p { color: #666; font-size: 15px; margin-bottom: 8px; }
+    .order-id-badge { background: #f4f4f4; border-radius: 8px; padding: 10px 20px; font-size: 13px; color: #555; margin: 16px 0; display: inline-block; }
+    .success-card a { display: inline-block; margin-top: 20px; background: #e63946; color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <img src="madchicken-logo.png" alt="Mad Chicken" />
+    <div class="nav-right">
+      <span>Welcome, Manager</span>
+      <button class="cart-btn" onclick="window.location='cart.html'">🛒 Cart <span class="cart-count" id="cartCount">0</span></button>
+      <button class="logout" onclick="window.location='index.html'">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="breadcrumb"><a href="dashboard.html">← Back to All Products</a></div>
+  <div class="page-header"><h1>Your Cart</h1></div>
+
+  <!-- CART VIEW -->
+  <div id="cartView" class="cart-container">
+    <div id="cartContent"></div>
+  </div>
+
+  <!-- SUCCESS VIEW -->
+  <div id="successScreen" class="cart-container">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <h2>Order Submitted!</h2>
+      <p>Your order has been sent to the print team.</p>
+      <div class="order-id-badge" id="orderIdBadge">Order #—</div>
+      <p style="color:#888; font-size:13px;">You'll be contacted when it's ready.</p>
+      <a href="dashboard.html">← Back to Products</a>
+    </div>
+  </div>
+
+  <script>
+    function getCart() { return JSON.parse(localStorage.getItem('mc_cart') || '[]'); }
+    function saveCart(c) { localStorage.setItem('mc_cart', JSON.stringify(c)); updateCartCount(); }
+    function updateCartCount() { document.getElementById('cartCount').textContent = getCart().length; }
+
+    function removeItem(id) {
+      var cart = getCart().filter(function(i) { return i.id !== id; });
+      saveCart(cart);
+      renderCart();
+    }
+
+    function renderCart() {
+      var cart = getCart();
+      var container = document.getElementById('cartContent');
+      updateCartCount();
+
+      if (cart.length === 0) {
+        container.innerHTML = '<div class="empty-cart"><p>Your cart is empty.</p><a href="dashboard.html">Browse Products</a></div>';
+        return;
+      }
+
+      // Group location info
+      var locationText = cart[0].location || 'Not specified';
+
+      var rows = cart.map(function(item, idx) {
+        var notes = item.notes ? '<div class="notes-text">Note: ' + item.notes + '</div>' : '';
+        return '<tr>' +
+          '<td><div class="product-name">' + item.product + '</div><div class="product-size">' + (item.size || '') + '</div></td>' +
+          '<td><div class="qty-text">' + item.qty + '</div></td>' +
+          '<td><span class="location-badge">' + item.location + '</span></td>' +
+          '<td>' + notes + '</td>' +
+          '<td><button class="btn-remove" onclick="removeItem(' + item.id + ')" title="Remove">✕</button></td>' +
+        '</tr>';
+      }).join('');
+
+      container.innerHTML =
+        '<table class="cart-table">' +
+          '<thead><tr><th>Product</th><th>Option</th><th>Location</th><th>Notes</th><th></th></tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+        '<div class="order-summary">' +
+          '<h3>Submit Order</h3>' +
+          '<div class="summary-row"><span>Items in cart</span><span>' + cart.length + ' item' + (cart.length !== 1 ? 's' : '') + '</span></div>' +
+          '<div class="summary-row"><span>Location</span><span>' + locationText + '</span></div>' +
+          '<textarea class="order-notes" id="orderNotes" placeholder="Any overall notes for the print team... (optional)"></textarea>' +
+          '<button class="btn-submit" id="submitBtn" onclick="submitOrder()">📦 Submit Order</button>' +
+          '<button class="btn-clear" onclick="clearCart()">Clear Cart</button>' +
+        '</div>';
+    }
+
+    function clearCart() {
+      if (!confirm('Clear all items from your cart?')) return;
+      saveCart([]);
+      renderCart();
+    }
+
+    async function submitOrder() {
+      var cart = getCart();
+      if (cart.length === 0) return;
+
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      var notes = document.getElementById('orderNotes').value.trim();
+      var location = cart[0].location || 'Unknown';
+
+      var payload = {
+        location: location,
+        items: cart,
+        status: 'Pending',
+        notes: notes || null
+      };
+
+      var res = await db.from('orders').insert(payload).select('id').single();
+
+      if (res.error) {
+        alert('Error submitting order: ' + res.error.message);
+        btn.disabled = false;
+        btn.textContent = '📦 Submit Order';
+        return;
+      }
+
+      // Clear cart
+      saveCart([]);
+
+      // Show success
+      document.getElementById('cartView').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+      document.getElementById('orderIdBadge').textContent = 'Order #' + res.data.id;
+    }
+
+    renderCart();
+  </script>
+</body>
+</html>

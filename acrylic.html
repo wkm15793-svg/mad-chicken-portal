@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mad Chicken – Acrylic Signs</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    nav { background: #1a1a2e; padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; }
+    nav img { height: 50px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-right span { color: #aaa; font-size: 14px; }
+    .cart-btn { background: white; color: #1a1a2e; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .cart-count { background: #e63946; color: white; border-radius: 50%; padding: 2px 7px; font-size: 12px; margin-left: 6px; }
+    .logout { background: #e63946; color: white; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .breadcrumb { padding: 20px 30px 0; font-size: 13px; color: #888; }
+    .breadcrumb a { color: #e63946; text-decoration: none; }
+    .page-header { padding: 10px 30px 10px; }
+    .page-header h1 { font-size: 22px; color: #1a1a2e; }
+    .page-header p { color: #888; font-size: 14px; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px 30px 40px; }
+    .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.2s; }
+    .card:hover { transform: translateY(-4px); }
+    .card-img { background: #f9f9f9; height: 130px; display: flex; align-items: center; justify-content: center; font-size: 48px; border-bottom: 1px solid #f0f0f0; overflow: hidden; }
+    .card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .card-body { padding: 14px; }
+    .card-body h3 { font-size: 14px; color: #1a1a2e; margin-bottom: 4px; }
+    .card-body .size { font-size: 12px; color: #999; margin-bottom: 6px; }
+    .price-tag { background: #fff3f3; border: 1px solid #fdd; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #c1121f; margin-bottom: 12px; line-height: 1.6; }
+    .card-body button { width: 100%; padding: 9px; background: #e63946; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+    .card-body button:hover { background: #c1121f; }
+    .loading-msg { padding: 60px 30px; text-align: center; color: #888; font-size: 15px; grid-column: 1/-1; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 12px; padding: 30px; width: 420px; max-width: 95%; }
+    .modal h2 { font-size: 18px; color: #1a1a2e; margin-bottom: 6px; }
+    .modal .modal-product { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .modal label { font-size: 13px; color: #555; display: block; margin-bottom: 5px; margin-top: 14px; }
+    .modal select, .modal textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .modal textarea { height: 80px; resize: none; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-buttons button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
+    .btn-add { background: #e63946; color: white; } .btn-cancel { background: #f0f0f0; color: #333; }
+  </style>
+</head>
+<body>
+  <nav><img src="madchicken-logo.png" alt="Mad Chicken" />
+    <div class="nav-right"><span>Welcome, Manager</span>
+      <button class="cart-btn" onclick="window.location='cart.html'">🛒 Cart <span class="cart-count" id="cartCount">0</span></button>
+      <button class="logout" onclick="window.location='index.html'">Log Out</button>
+    </div>
+  </nav>
+  <div class="breadcrumb"><a href="dashboard.html">← Back to All Products</a></div>
+  <div class="page-header"><h1>Acrylic Signs</h1><p>Select a product and add it to your cart</p></div>
+  <div class="grid" id="productGrid"><div class="loading-msg">Loading products...</div></div>
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal"><h2>Add to Cart</h2><div class="modal-product" id="modalProductName"></div>
+      <label>Quantity / Price Option</label><select id="modalQty"></select>
+      <label>Location</label>
+      <select id="modalLocation"><option value="">-- Select location --</option><option value="Milwaukee WI">Milwaukee WI</option><option value="Minnesota MN">Minnesota MN</option><option value="Longwood NY">Longwood NY</option><option value="Ohio OH">Ohio OH</option><option value="Chicago IL">Chicago IL</option><option value="Michigan MI">Michigan MI</option><option value="Hollywood FL">Hollywood FL</option><option value="Tampa FL">Tampa FL</option><option value="Green Bay WI">Green Bay WI</option><option value="Maryland MD">Maryland MD</option></select>
+      <label>Notes (optional)</label><textarea id="modalNotes" placeholder="Any special instructions..."></textarea>
+      <div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-add" onclick="addToCart()">Add to Cart</button></div>
+    </div>
+  </div>
+  <script>
+    const CATEGORY = 'acrylic';
+    let currentProduct = '', currentSize = '';
+    function getCart() { return JSON.parse(localStorage.getItem('mc_cart') || '[]'); }
+    function saveCart(c) { localStorage.setItem('mc_cart', JSON.stringify(c)); updateCartCount(); }
+    function updateCartCount() { document.getElementById('cartCount').textContent = getCart().length; }
+    async function loadProducts() {
+      var grid = document.getElementById('productGrid');
+      var res = await db.from('products').select('*').eq('category', CATEGORY).eq('active', true).order('id');
+      if (res.error) { grid.innerHTML = '<div class="loading-msg" style="color:red;">Error loading products.</div>'; return; }
+      if (!res.data || res.data.length === 0) { grid.innerHTML = '<div class="loading-msg">No products available yet.</div>'; return; }
+      grid.innerHTML = '';
+      res.data.forEach(function(p) {
+        var options = p.price_options ? p.price_options.split('\n').filter(function(o){return o.trim();}) : ['Contact for pricing'];
+        var imgHtml = p.image_url ? '<img src="' + p.image_url + '" alt="' + p.name + '" onerror="this.parentElement.innerHTML=\'🖼️\'">' : '🖼️';
+        var card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = '<div class="card-img">' + imgHtml + '</div><div class="card-body"><h3>' + p.name + '</h3><div class="size">' + (p.size || '') + '</div><div class="price-tag">' + options.join('<br>') + '</div><button class="add-btn">Add to Cart</button></div>';
+        card.querySelector('.add-btn').addEventListener('click', function() { openModal(p.name, p.size || '', options); });
+        grid.appendChild(card);
+      });
+    }
+    function openModal(product, size, options) {
+      currentProduct = product; currentSize = size;
+      document.getElementById('modalProductName').textContent = product + (size ? ' — ' + size : '');
+      var select = document.getElementById('modalQty'); select.innerHTML = '';
+      options.forEach(function(opt) { var o = document.createElement('option'); o.value = opt; o.textContent = opt; select.appendChild(o); });
+      document.getElementById('modalLocation').value = localStorage.getItem('mc_location') || '';
+      document.getElementById('modalNotes').value = '';
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+    function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+    function addToCart() {
+      var location = document.getElementById('modalLocation').value;
+      if (!location) { alert('Please select a location.'); return; }
+      var cart = getCart();
+      cart.push({ id: Date.now(), product: currentProduct, size: currentSize, qty: document.getElementById('modalQty').value, location: location, notes: document.getElementById('modalNotes').value.trim() });
+      saveCart(cart); closeModal(); alert('Added to cart!');
+    }
+    updateCartCount(); loadProducts();
+  </script>
+</body>
+</html>
