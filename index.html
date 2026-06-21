@@ -1,121 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mad Chicken – Print Portal</title>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mad Chicken – Print Ordering Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #1a1a2e;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .login-box {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      width: 400px;
-      text-align: center;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    }
-
-    .main-logo {
-      width: 140px;
-      margin-bottom: 10px;
-    }
-
-    .sub {
-      font-size: 14px;
-      color: #555;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    .powered-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-
-    .powered-text {
-      font-size: 11px;
-      color: #aaa;
-    }
-
-    .onestop-logo {
-      height: 24px;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid #eee;
-      margin-bottom: 24px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 14px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #e63946;
-    }
-
-    button {
-      width: 100%;
-      padding: 13px;
-      background: #e63946;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover { background: #c1121f; }
-
-    .footer {
-      margin-top: 20px;
-      font-size: 11px;
-      color: #ccc;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .login-card { background: white; padding: 44px 40px; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); width: 380px; text-align: center; }
+    .login-card img.logo { height: 80px; margin-bottom: 12px; }
+    .login-card h2 { font-size: 17px; color: #1a1a2e; margin-bottom: 4px; }
+    .login-card .subtitle { font-size: 13px; color: #888; margin-bottom: 6px; }
+    .divider { border: none; border-top: 1px solid #f0f0f0; margin: 18px 0; }
+    .onestop-logo { height: 28px; margin-bottom: 20px; opacity: 0.7; }
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border 0.2s; }
+    .form-group input:focus { border-color: #e63946; }
+    .btn-login { width: 100%; padding: 13px; background: #e63946; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+    .btn-login:hover { background: #c1121f; }
+    .btn-login:disabled { background: #ccc; cursor: not-allowed; }
+    .error-msg { color: #e63946; font-size: 13px; margin-top: 12px; display: none; }
+    .forgot-link { font-size: 12px; color: #888; margin-top: 14px; display: block; }
   </style>
 </head>
 <body>
-
-  <div class="login-box">
-    <img src="madchicken-logo.png" alt="Mad Chicken" class="main-logo" />
-    <div class="sub">Mad Chicken Print Ordering Portal</div>
-
-    <div class="powered-row">
-  <div>
-    <span class="powered-text">Powered by</span><br>
-    <img src="onestop-logo.png" alt="Onestop Design & Print" class="onestop-logo" />
-  </div>
-</div>>
-
+  <div class="login-card">
+    <img class="logo" src="madchicken-logo.png" alt="Mad Chicken" onerror="this.style.display='none'">
+    <h2>Mad Chicken Print Ordering Portal</h2>
+    <div class="subtitle">Manager Access</div>
     <hr class="divider">
+    <img class="onestop-logo" src="onestop-logo.png" alt="OneStop" onerror="this.style.display='none'">
 
-    <input type="email" placeholder="Email address" />
-    <input type="password" placeholder="Password" />
-    <button>Sign In</button>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="manager@madchicken.com" onkeydown="if(event.key==='Enter') login()" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()" />
+    </div>
 
-    <div class="footer">For access issues, contact your print shop administrator</div>
+    <button class="btn-login" id="loginBtn" onclick="login()">Sign In</button>
+    <div class="error-msg" id="errorMsg">Incorrect email or password. Please try again.</div>
+    <span class="forgot-link">Contact your admin to reset your password.</span>
   </div>
 
+  <script>
+    // If already logged in, go straight to dashboard
+    (async function() {
+      var result = await db.auth.getSession();
+      if (result.data.session) {
+        window.location.href = 'dashboard.html';
+      }
+    })();
+
+    async function login() {
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value;
+      var btn = document.getElementById('loginBtn');
+      var err = document.getElementById('errorMsg');
+
+      if (!email || !password) { err.textContent = 'Please enter your email and password.'; err.style.display = 'block'; return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+      err.style.display = 'none';
+
+      var result = await db.auth.signInWithPassword({ email: email, password: password });
+
+      if (result.error) {
+        err.textContent = 'Incorrect email or password. Please try again.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        return;
+      }
+
+      window.location.href = 'dashboard.html';
+    }
+  </script>
 </body>
 </html>

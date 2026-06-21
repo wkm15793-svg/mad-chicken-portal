@@ -159,11 +159,15 @@
       var notes = document.getElementById('orderNotes').value.trim();
       var location = cart[0].location || 'Unknown';
 
+      var sessionResult = await db.auth.getSession();
+      var managerEmail = sessionResult.data.session ? sessionResult.data.session.user.email : 'Unknown';
+
       var payload = {
         location: location,
         items: cart,
         status: 'Pending',
-        notes: notes || null
+        notes: notes || null,
+        submitted_by: managerEmail
       };
 
       var res = await db.from('orders').insert(payload).select('id').single();
