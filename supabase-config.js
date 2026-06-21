@@ -9,6 +9,17 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var page = window.location.pathname.split('/').pop() || 'index.html';
   if (page === 'index.html' || page === 'admin.html') return;
 
+  // Intercept logout clicks in CAPTURE phase so we run before inline onclick
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.logout') : null;
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    db.auth.signOut().then(function () {
+      window.location.href = 'index.html';
+    });
+  }, true); // true = capture phase, fires before inline onclick
+
   document.addEventListener('DOMContentLoaded', async function () {
     var result = await db.auth.getSession();
     var session = result.data.session;
@@ -26,13 +37,5 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         : session.user.email.split('@')[0];
       welcomeEl.textContent = 'Welcome, ' + name;
     }
-
-    // Wire all logout buttons to actually sign out
-    document.querySelectorAll('.logout').forEach(function (btn) {
-      btn.onclick = async function () {
-        await db.auth.signOut();
-        window.location.href = 'index.html';
-      };
-    });
   });
 })();
